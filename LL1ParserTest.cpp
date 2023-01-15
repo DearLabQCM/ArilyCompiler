@@ -9,6 +9,7 @@
 #include <vector>
 #include <set>
 #include <algorithm>
+#include <cstdlib>
 using namespace std;
 /* 不要修改这个标准输入函数 */
 void read_prog(string& prog)
@@ -402,7 +403,8 @@ public:
                                            break;
 
                                 }
-                                cout<<"语法错误,第"<<TokenLine[i]<<"行,缺少\""<<Stack[ErrorPtr]<<"\""<<endl;
+                                if(TokenLine[i])cout<<"语法错误,第"<<TokenLine[i]<<"行,缺少\""<<Stack[ErrorPtr]<<"\""<<endl;
+                                else cout<<"语法错误,第"<<line<<"行,缺少\""<<Stack[ErrorPtr]<<"\""<<endl;
                                 i--;
                                 input[i]=Stack[ErrorPtr];
                                 continue;
@@ -657,10 +659,8 @@ void GetFollow()
 }
 
 
-void Analysis()
+void Analysis(string prog)
 {
-	string prog;
-	read_prog(prog);
 	/* 骚年们 请开始你们的表演 */
     /********* Begin *********/
     bool fast=0;//快速模式标识
@@ -903,4 +903,74 @@ void Analysis()
     }
     /********* End *********/
 
+}
+
+string Generator(int step);
+int main()
+{
+    vector<string>progs;
+    progs.push_back("{ }");
+    progs.push_back("{ while ( ID == NUM + ID * NUM - ID / NUM ) if ( ID >= NUM * NUM + ID ) then ID = NUM ; else ID = NUM ; }");
+    progs.push_back(" { { { } } }");
+
+    //Error
+    progs.push_back(" { { { { { { } } } \n } } ");
+    progs.push_back("{ \n while  ID == NUM + ID * NUM - ID / NUM ) \n if ( ID >= NUM * NUM + ID )  \n ID  NUM   \n ID  NUM  }");
+    progs.push_back("if  ID < NUM  ID NUM  ID NUM }");
+    progs.push_back("while  ID < NUM if ID > NUM while ID < NUM if ID + ID < NUM * NUM + ID ID  NUM - ID * NUM / NUM  ID NUM ID NUM ID NUM }");
+    //string prog=progs[6];
+    string prog=Generator(5);
+    cout<<prog<<endl;
+    Analysis(prog);
+}
+
+//错误代码生成器
+string Generator(int step)
+{
+    string ret="";
+    int generator=1+rand()%500;
+    if(generator%2)ret+="{ ";
+    else ret+=" ";
+
+    vector<string>Basics;
+    Basics.push_back("ID = NUM ; ");
+    Basics.push_back("ID = NUM ");
+    Basics.push_back("ID  NUM ; ");
+    Basics.push_back("ID  NUM ");
+
+    Basics.push_back("if ( ID == NUM ) then ");
+    Basics.push_back("if ( ID == NUM ) ");
+    Basics.push_back("if  ID == NUM  then ");
+    Basics.push_back("if  ID == NUM  ");
+    Basics.push_back("else ");
+
+
+    Basics.push_back("while ( ID == NUM ) ");
+    Basics.push_back("while  ID == NUM  ");
+
+
+    while(step--)
+    {
+        int generator=1+rand()%500;
+        if(generator%4 == 1)
+        {
+            ret+=Basics[0+(step+generator)%4];
+        }
+        else if(generator%4 == 2)
+        {
+            ret+=Basics[4+(step+generator)%4];
+            ret+=Basics[0+(step+generator)%4];
+            if(generator%2)ret+=Basics[4+3];
+            else ret+=" ";
+            ret+=Basics[0+(step+generator+1)%4];
+        }
+        else
+        {
+            ret+=Basics[9+(step+generator)%2];
+            ret+=Basics[0+(step+generator)%4];
+        }
+    }
+    generator=1+rand()%500;
+    if(generator%2)ret+=" } ";
+    return ret;
 }
